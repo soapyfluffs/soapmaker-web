@@ -3,17 +3,29 @@ const baseConversions = {
   // Weight
   g: 1,
   kg: 1000,
-  oz: 28.3495,
-  lb: 453.592,
+  oz: 28.34952,  // More precise conversion
+  lb: 453.592,   // More precise conversion
   
   // Volume
   ml: 1,
   l: 1000,
   'fl oz': 29.5735,
   gal: 3785.41,
-};
+  // Special case for 'each'
+  each: 1};
 
 export const convertWeight = (value, fromUnit, toUnit) => {
+  // If units are the same, return the value
+  if (fromUnit === toUnit) {
+    return value;
+  }
+
+  // If either unit is 'each', return the value
+  if (fromUnit === 'each' || toUnit === 'each') {
+    return value;
+  }
+  
+  // Existing conversion logic
   if (fromUnit === toUnit) {
     return value;
   }
@@ -55,14 +67,14 @@ export const getCommonUnits = (materialType) => {
   switch (materialType) {
     case 'oil':
     case 'butter':
-      return ['g', 'kg', 'oz', 'lb'];
+      return ['each', 'g', 'kg', 'oz', 'lb'];
     case 'fragrance':
     case 'colorant':
-      return ['g', 'oz'];
+      return ['each', 'g', 'oz'];
     case 'additive':
-      return ['g', 'oz', 'ml', 'fl oz'];
+      return ['each', 'g', 'oz', 'ml', 'fl oz'];
     default:
-      return ['g', 'kg'];
+      return ['each', 'g', 'kg'];
   }
 };
 
