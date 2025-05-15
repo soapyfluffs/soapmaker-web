@@ -237,6 +237,45 @@ function Recipes() {
     </div>
   );
 })}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          {materials.map(material => (
+            <option key={material.id} value={material.id}>
+              {material.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center">
+        <input
+          type="number"
+          value={oil.weight}
+          onChange={(e) => updateOil(index, 'weight', e.target.value)}
+          placeholder="Weight"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+        <select
+          value={oil.unit}
+          onChange={(e) => updateOil(index, 'unit', e.target.value)}
+          className="ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          {availableUnits.map(unit => (
+            <option key={unit} value={unit}>{unit}</option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => removeOil(index)}
+          className="text-red-600 hover:text-red-800"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  );
+})}
                   >
                     Remove
                   </button>
