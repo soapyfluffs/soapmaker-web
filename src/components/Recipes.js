@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { convertWeight, getCommonUnits } from '../utils/units';
 
 function Recipes() {
   const { state, dispatch } = useApp();
@@ -12,13 +13,14 @@ function Recipes() {
     oils.forEach(oil => {
       const material = materials.find(m => m.id === oil.materialId);
       if (oil.weight && material?.sapValue) {
-        totalLye += (parseFloat(oil.weight) * material.sapValue);
+        // Convert weight to grams for consistent calculation
+        const weightInGrams = convertWeight(parseFloat(oil.weight), oil.unit, 'g');
+        totalLye += (weightInGrams * material.sapValue);
       }
     });
     return (totalLye * (1 - (superFat / 100))).toFixed(2);
   };
 
-  // eslint-disable-next-line no-unused-vars
   const calculateWater = (oils, waterRatio, superFat) => {
     const lye = calculateLye(oils, superFat);
     return (parseFloat(lye) * (waterRatio / 100)).toFixed(2);
@@ -29,7 +31,10 @@ function Recipes() {
     recipe.oils.forEach(oil => {
       const material = materials.find(m => m.id === oil.materialId);
       if (oil.weight && material?.cost) {
-        materialCost += (parseFloat(oil.weight) * material.cost / 1000); // assuming cost is per kg
+        // Convert weight to grams and calculate cost per gram
+        const weightInGrams = convertWeight(parseFloat(oil.weight), oil.unit, 'g');
+        const costPerGram = material.cost / 1000; // assuming cost is per kg
+        materialCost += (weightInGrams * costPerGram);
       }
     });
     
@@ -84,9 +89,16 @@ function Recipes() {
   };
 
   const addOil = () => {
+    const defaultMaterial = materials[0] || { id: 1, type: 'oil' };
+    const availableUnits = getCommonUnits(defaultMaterial.type);
+    
     setEditingRecipe({
       ...editingRecipe,
-      oils: [...editingRecipe.oils, { materialId: materials[0]?.id || 1, weight: '' }]
+      oils: [...editingRecipe.oils, { 
+        materialId: defaultMaterial.id, 
+        weight: '', 
+        unit: availableUnits[0] || 'g' 
+      }]
     });
   };
 
@@ -171,33 +183,60 @@ function Recipes() {
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Oils</h3>
-            {editingRecipe.oils.map((oil, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <select
-                    value={oil.materialId}
-                    onChange={(e) => updateOil(index, 'materialId', parseInt(e.target.value))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    {materials.map(material => (
-                      <option key={material.id} value={material.id}>
-                        {material.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="number"
-                    value={oil.weight}
-                    onChange={(e) => updateOil(index, 'weight', e.target.value)}
-                    placeholder="Weight (g)"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeOil(index)}
-                    className="ml-2 text-red-600 hover:text-red-800"
+            {editingRecipe.oils.map((oil, index) => {
+  const material = materials.find(m => m.id === oil.materialId);
+  const availableUnits = getCommonUnits(material?.type || 'oil');
+  
+  return (
+    <div key={index} className="grid grid-cols-3 gap-4 mb-4 items-center">
+      <div>
+        <select
+          value={oil.materialId}
+          onChange={(e) => {
+            const selectedMaterial = materials.find(m => m.id === parseInt(e.target.value));
+            const newUnits = getCommonUnits(selectedMaterial?.type || 'oil');
+            updateOil(index, 'materialId', parseInt(e.target.value));
+            updateOil(index, 'unit', newUnits[0] || 'g');
+          }}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          {materials.map(material => (
+            <option key={material.id} value={material.id}>
+              {material.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center">
+        <input
+          type="number"
+          value={oil.weight}
+          onChange={(e) => updateOil(index, 'weight', e.target.value)}
+          placeholder="Weight"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+        <select
+          value={oil.unit}
+          onChange={(e) => updateOil(index, 'unit', e.target.value)}
+          className="ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          {availableUnits.map(unit => (
+            <option key={unit} value={unit}>{unit}</option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => removeOil(index)}
+          className="text-red-600 hover:text-red-800"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  );
+})}
                   >
                     Remove
                   </button>
