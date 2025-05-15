@@ -1,0 +1,118 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+model Material {
+  id               Int      @id @default(autoincrement())
+  name             String
+  type             String
+  sapValue         Float?
+  cost             Float
+  unit             String
+  alternativeUnits String?  // JSON string of units array
+  conversionRates  String?  // JSON string of conversion rates
+  stock            Float
+  supplier         String?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  RecipeOil        RecipeOil[]
+}
+
+model Recipe {
+  id           Int         @id @default(autoincrement())
+  name         String
+  description  String?
+  oils         RecipeOil[]
+  waterRatio   Float
+  superFat     Float
+  instructions String?
+  yield        Int
+  totalWeight  Float
+  laborTime    Int
+  laborCost    Float
+  notes        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  products     Product[]
+  batches      Batch[]
+}
+
+model RecipeOil {
+  id         Int      @id @default(autoincrement())
+  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  recipeId   Int
+  material   Material @relation(fields: [materialId], references: [id])
+  materialId Int
+  weight     Float
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  weight      Float
+  price       Float
+  cost        Float
+  sku         String   @unique
+  shopifyId   String?  @unique
+  recipe      Recipe?  @relation(fields: [recipeId], references: [id])
+  recipeId    Int?
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Batch {
+  id            Int            @id @default(autoincrement())
+  batchNumber   String        @unique
+  recipe        Recipe        @relation(fields: [recipeId], references: [id])
+  recipeId      Int
+  startDate     DateTime
+  status        String
+  yield         Int
+  actualCost    Float
+  laborHours    Float
+  notes         String?
+  qualityChecks QualityCheck[]
+  documents     Document[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model QualityCheck {
+  id        Int      @id @default(autoincrement())
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  batchId   Int
+  name      String
+  value     String
+  date      DateTime
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  batchId   Int
+  name      String
+  content   String   // Base64 encoded content
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id                 Int      @id @default(autoincrement())
+  defaultWeightUnit  String   @default("g")
+  defaultCurrency    String   @default("USD")
+  laborCostPerHour   Float    @default(15)
+  defaultSuperFat    Float    @default(5)
+  defaultWaterRatio  Float    @default(38)
+  shopifyDomain      String?
+  shopifyAccessToken String?
+  updatedAt         DateTime @updatedAt
+}

@@ -1,0 +1,112 @@
+/* Print styles */
+@media print {
+  /* Hide navigation and UI elements */
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset background colors and borders */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure content fits page width */
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Improve table readability */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+  }
+
+  /* Force page breaks */
+  .page-break {
+    page-break-before: always !important;
+  }
+
+  /* Ensure text contrast */
+  * {
+    color: black !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Show URLs for links */
+  a[href]:after {
+    content: " (" attr(href) ")" !important;
+  }
+
+  /* Expand all content */
+  .collapse {
+    display: block !important;
+    height: auto !important;
+  }
+
+  /* Recipe specific styles */
+  .recipe-print {
+    margin: 20px 0 !important;
+  }
+
+  .recipe-print h1 {
+    font-size: 24pt !important;
+    margin-bottom: 10px !important;
+  }
+
+  .recipe-print h2 {
+    font-size: 18pt !important;
+    margin: 15px 0 !important;
+  }
+
+  .recipe-print table {
+    margin: 15px 0 !important;
+  }
+
+  /* Batch specific styles */
+  .batch-print {
+    margin: 20px 0 !important;
+  }
+
+  .batch-print h1 {
+    font-size: 24pt !important;
+    margin-bottom: 10px !important;
+  }
+
+  .batch-print .details {
+    margin: 15px 0 !important;
+  }
+
+  .batch-print .quality-checks {
+    margin: 15px 0 !important;
+  }
+
+  /* History report specific styles */
+  .history-print {
+    margin: 20px 0 !important;
+  }
+
+  .history-print h1 {
+    font-size: 24pt !important;
+    margin-bottom: 20px !important;
+  }
+
+  .history-print .summary {
+    margin: 15px 0 !important;
+  }
+
+  .history-print table {
+    font-size: 10pt !important;
+  }
+}

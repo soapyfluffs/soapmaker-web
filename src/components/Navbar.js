@@ -19,7 +19,17 @@ function Navbar() {
             <Link to="/recipes" className="text-gray-600 hover:text-gray-900">
               Recipes
             </Link>
-          </div>
+            <Link to="/materials" className="text-gray-600 hover:text-gray-900">
+              Materials
+            </Link>
+            <Link to="/products" className="text-gray-600 hover:text-gray-900">
+              Products
+            </Link>
+            <Link to="/batches" className="text-gray-600 hover:text-gray-900">
+              Batches
+            </Link>            <Link to="/settings" className="text-gray-600 hover:text-gray-900">
+              Settings
+            </Link>          </div>
         </div>
       </div>
     </nav>

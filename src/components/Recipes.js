@@ -1,43 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useApp } from '../context/AppContext';
 
 function Recipes() {
-  const [recipes, setRecipes] = useState(() => {
-    const savedRecipes = localStorage.getItem('soapRecipes');
-    return savedRecipes ? JSON.parse(savedRecipes) : [
-      {
-        id: 1,
-        name: 'Basic Olive Oil Soap',
-        oils: [
-          { name: 'Olive Oil', weight: 1000, sapValue: 0.135 },
-          { name: 'Coconut Oil', weight: 250, sapValue: 0.183 }
-        ],
-        waterRatio: 38,
-        superFat: 5,
-        instructions: 'Mix oils, add lye solution, blend until trace, pour into mold.'
-      }
-    ];
-  });
-
+  const { state, dispatch } = useApp();
+  const { recipes, materials } = state;
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('soapRecipes', JSON.stringify(recipes));
-  }, [recipes]);
 
   const calculateLye = (oils, superFat) => {
     let totalLye = 0;
     oils.forEach(oil => {
-      if (oil.weight && oil.sapValue) {
-        totalLye += (parseFloat(oil.weight) * oil.sapValue);
+      const material = materials.find(m => m.id === oil.materialId);
+      if (oil.weight && material?.sapValue) {
+        totalLye += (parseFloat(oil.weight) * material.sapValue);
       }
     });
     return (totalLye * (1 - (superFat / 100))).toFixed(2);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const calculateWater = (oils, waterRatio, superFat) => {
     const lye = calculateLye(oils, superFat);
     return (parseFloat(lye) * (waterRatio / 100)).toFixed(2);
+  };
+
+  const calculateCost = (recipe) => {
+    let materialCost = 0;
+    recipe.oils.forEach(oil => {
+      const material = materials.find(m => m.id === oil.materialId);
+      if (oil.weight && material?.cost) {
+        materialCost += (parseFloat(oil.weight) * material.cost / 1000); // assuming cost is per kg
+      }
+    });
+    
+    const laborCost = (recipe.laborTime / 60) * recipe.laborCost;
+    return (materialCost + laborCost).toFixed(2);
   };
 
   const addRecipe = () => {
@@ -45,10 +42,16 @@ function Recipes() {
     setEditingRecipe({
       id: Date.now(),
       name: '',
-      oils: [{ name: 'Olive Oil', weight: '', sapValue: 0.135 }],
+      description: '',
+      oils: [{ materialId: materials[0]?.id || 1, weight: '' }],
       waterRatio: 38,
       superFat: 5,
-      instructions: ''
+      instructions: '',
+      yield: 12,
+      totalWeight: 1000,
+      laborTime: 45,
+      laborCost: 15,
+      notes: ''
     });
   };
 
@@ -59,18 +62,16 @@ function Recipes() {
 
   const deleteRecipe = (id) => {
     if (window.confirm('Are you sure you want to delete this recipe?')) {
-      setRecipes(recipes.filter(recipe => recipe.id !== id));
+      dispatch({ type: 'DELETE_RECIPE', payload: id });
     }
   };
 
   const saveRecipe = (e) => {
     e.preventDefault();
     if (isAddingNew) {
-      setRecipes([...recipes, editingRecipe]);
+      dispatch({ type: 'ADD_RECIPE', payload: editingRecipe });
     } else {
-      setRecipes(recipes.map(recipe => 
-        recipe.id === editingRecipe.id ? editingRecipe : recipe
-      ));
+      dispatch({ type: 'UPDATE_RECIPE', payload: editingRecipe });
     }
     setEditingRecipe(null);
     setIsAddingNew(false);
@@ -85,7 +86,7 @@ function Recipes() {
   const addOil = () => {
     setEditingRecipe({
       ...editingRecipe,
-      oils: [...editingRecipe.oils, { name: 'Olive Oil', weight: '', sapValue: 0.135 }]
+      oils: [...editingRecipe.oils, { materialId: materials[0]?.id || 1, weight: '' }]
     });
   };
 
@@ -96,9 +97,54 @@ function Recipes() {
     });
   };
 
+  const RecipeList = () => (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Recipes</h2>
+        <button
+          onClick={addRecipe}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          Add New Recipe
+        </button>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        {recipes.map(recipe => (
+          <div key={recipe.id} className="border rounded-lg p-4 shadow-sm">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-xl font-semibold">{recipe.name}</h3>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => editRecipe(recipe)}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteRecipe(recipe.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-2">{recipe.description}</p>
+            <div className="text-sm text-gray-500">
+              <p>Oils: {recipe.oils.length}</p>
+              <p>Total Weight: {recipe.totalWeight}g</p>
+              <p>Yield: {recipe.yield} bars</p>
+              <p>Cost: ${calculateCost(recipe)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (editingRecipe) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto p-6">
         <h2 className="text-2xl font-bold mb-6">
           {isAddingNew ? 'Add New Recipe' : 'Edit Recipe'}
         </h2>
@@ -114,32 +160,38 @@ function Recipes() {
               required
             />
           </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              value={editingRecipe.description}
+              onChange={(e) => setEditingRecipe({ ...editingRecipe, description: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              rows={2}
+            />
+          </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Oils</h3>
             {editingRecipe.oils.map((oil, index) => (
-              <div key={index} className="grid grid-cols-3 gap-4 mb-4">
-                <input
-                  type="text"
-                  value={oil.name}
-                  onChange={(e) => updateOil(index, 'name', e.target.value)}
-                  placeholder="Oil Name"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={oil.weight}
-                  onChange={(e) => updateOil(index, 'weight', e.target.value)}
-                  placeholder="Weight (g)"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
+              <div key={index} className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <select
+                    value={oil.materialId}
+                    onChange={(e) => updateOil(index, 'materialId', parseInt(e.target.value))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    {materials.map(material => (
+                      <option key={material.id} value={material.id}>
+                        {material.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex items-center">
                   <input
                     type="number"
-                    value={oil.sapValue}
-                    onChange={(e) => updateOil(index, 'sapValue', e.target.value)}
-                    placeholder="SAP Value"
-                    step="0.001"
+                    value={oil.weight}
+                    onChange={(e) => updateOil(index, 'weight', e.target.value)}
+                    placeholder="Weight (g)"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                   <button
@@ -155,12 +207,11 @@ function Recipes() {
             <button
               type="button"
               onClick={addOil}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              className="mt-2 text-blue-600 hover:text-blue-800"
             >
               Add Oil
             </button>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Water Ratio (%)</label>
@@ -169,6 +220,7 @@ function Recipes() {
                 value={editingRecipe.waterRatio}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, waterRatio: parseFloat(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
               />
             </div>
             <div>
@@ -178,25 +230,77 @@ function Recipes() {
                 value={editingRecipe.superFat}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, superFat: parseFloat(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
               />
             </div>
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700">Instructions</label>
             <textarea
               value={editingRecipe.instructions}
               onChange={(e) => setEditingRecipe({ ...editingRecipe, instructions: e.target.value })}
-              rows={4}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              rows={4}
             />
           </div>
-
-          <div className="flex justify-end space-x-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Yield (bars)</label>
+              <input
+                type="number"
+                value={editingRecipe.yield}
+                onChange={(e) => setEditingRecipe({ ...editingRecipe, yield: parseInt(e.target.value) })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Total Weight (g)</label>
+              <input
+                type="number"
+                value={editingRecipe.totalWeight}
+                onChange={(e) => setEditingRecipe({ ...editingRecipe, totalWeight: parseFloat(e.target.value) })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Labor Time (minutes)</label>
+              <input
+                type="number"
+                value={editingRecipe.laborTime}
+                onChange={(e) => setEditingRecipe({ ...editingRecipe, laborTime: parseInt(e.target.value) })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Labor Cost ($/hour)</label>
+              <input
+                type="number"
+                value={editingRecipe.laborCost}
+                onChange={(e) => setEditingRecipe({ ...editingRecipe, laborCost: parseFloat(e.target.value) })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea
+              value={editingRecipe.notes}
+              onChange={(e) => setEditingRecipe({ ...editingRecipe, notes: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              rows={2}
+            />
+          </div>
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={() => setEditingRecipe(null)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -212,35 +316,7 @@ function Recipes() {
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Soap Recipes</h2>
-      
-      <div className="grid gap-6">
-        {recipes.map(recipe => (
-          <div key={recipe.id} className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">{recipe.name}</h3>
-            
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Ingredients:</h4>
-              <ul className="list-disc list-inside">
-                {recipe.ingredients.map((ingredient, index) => (
-                  <li key={index}>
-                    {ingredient.name}: {ingredient.weight}g
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">Instructions:</h4>
-              <p className="text-gray-600">{recipe.instructions}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <RecipeList />;
 }
 
 export default Recipes;
