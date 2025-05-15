@@ -6,6 +6,8 @@ import {
   initialBatches,
   defaultSettings
 } from '../utils/dataModels';
+import { importAllData } from '../utils/csvImport';
+import { importAllData } from '../utils/csvImport';
 
 const AppContext = createContext();
 
@@ -98,8 +100,13 @@ function reducer(state, action) {
       };
     case 'UPDATE_SETTINGS':
       return {
+            case 'IMPORT_DATA':
+      return {
         ...state,
-        settings: { ...state.settings, ...action.payload }
+        materials: action.payload.materials || state.materials,
+        products: action.payload.products || state.products,
+        supplyOrders: action.payload.supplyOrders || state.supplyOrders
+      };        settings: { ...state.settings, ...action.payload }
       };
     default:
       return state;
