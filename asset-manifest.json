@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/soapmaker-web/static/css/main.7b434ab6.css",
+    "main.js": "/soapmaker-web/static/js/main.d6f82361.js",
+    "static/js/488.5e302d0b.chunk.js": "/soapmaker-web/static/js/488.5e302d0b.chunk.js",
+    "index.html": "/soapmaker-web/index.html",
+    "main.7b434ab6.css.map": "/soapmaker-web/static/css/main.7b434ab6.css.map",
+    "main.d6f82361.js.map": "/soapmaker-web/static/js/main.d6f82361.js.map",
+    "488.5e302d0b.chunk.js.map": "/soapmaker-web/static/js/488.5e302d0b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7b434ab6.css",
+    "static/js/main.d6f82361.js"
+  ]
+}
