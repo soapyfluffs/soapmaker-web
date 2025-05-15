@@ -29,21 +29,43 @@ function Settings() {
         return;
       }
 
+      console.log('Importing files:', {
+        materials: materialsFile.name,
+        products: productsFile.name,
+        supplyOrders: supplyOrdersFile.name
+      });
+
       const importedData = await importAllData(
         materialsFile, 
         productsFile, 
         supplyOrdersFile
       );
 
+      console.log('Imported data:', importedData);
+
+      // Check if any data was actually imported
+      const totalImportedItems = 
+        (importedData.materials?.length || 0) + 
+        (importedData.products?.length || 0) + 
+        (importedData.supplyOrders?.length || 0);
+
+      if (totalImportedItems === 0) {
+        setImportStatus('No data was imported. Check your CSV files and headers.');
+        return;
+      }
+
       dispatch({
         type: 'IMPORT_DATA',
         payload: importedData
       });
 
-      setImportStatus('Data imported successfully!');
+      setImportStatus(`Data imported successfully! 
+        Materials: ${importedData.materials?.length || 0}, 
+        Products: ${importedData.products?.length || 0}, 
+        Supply Orders: ${importedData.supplyOrders?.length || 0}`);
     } catch (error) {
       console.error('Import error:', error);
-      setImportStatus('Failed to import data');
+      setImportStatus(`Failed to import data: ${error.message}`);
     }
   };
 

@@ -107,7 +107,7 @@ function reducer(state, action) {
         ...state,
         materials: action.payload.materials || state.materials,
         products: action.payload.products || state.products,
-        supplyOrders: action.payload.supplyOrders || state.supplyOrders
+        supplyOrders: action.payload.supplyOrders || state.supplyOrders || []
       };
     default:
       return state;
