@@ -48,7 +48,11 @@ function Recipes() {
       id: Date.now(),
       name: '',
       description: '',
-      oils: [{ materialId: materials[0]?.id || 1, weight: '' }],
+      oils: [{ 
+        materialId: materials[0]?.id || 1, 
+        weight: '', 
+        unit: 'g' 
+      }],
       waterRatio: 38,
       superFat: 5,
       instructions: '',
@@ -184,108 +188,63 @@ function Recipes() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Oils</h3>
             {editingRecipe.oils.map((oil, index) => {
-  const material = materials.find(m => m.id === oil.materialId);
-  const availableUnits = getCommonUnits(material?.type || 'oil');
-  
-  return (
-    <div key={index} className="grid grid-cols-3 gap-4 mb-4 items-center">
-      <div>
-        <select
-          value={oil.materialId}
-          onChange={(e) => {
-            const selectedMaterial = materials.find(m => m.id === parseInt(e.target.value));
-            const newUnits = getCommonUnits(selectedMaterial?.type || 'oil');
-            updateOil(index, 'materialId', parseInt(e.target.value));
-            updateOil(index, 'unit', newUnits[0] || 'g');
-          }}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          {materials.map(material => (
-            <option key={material.id} value={material.id}>
-              {material.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex items-center">
-        <input
-          type="number"
-          value={oil.weight}
-          onChange={(e) => updateOil(index, 'weight', e.target.value)}
-          placeholder="Weight"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-        <select
-          value={oil.unit}
-          onChange={(e) => updateOil(index, 'unit', e.target.value)}
-          className="ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          {availableUnits.map(unit => (
-            <option key={unit} value={unit}>{unit}</option>
-          ))}
-        </select>
-      </div>
-      <div className="flex items-center">
-        <button
-          type="button"
-          onClick={() => removeOil(index)}
-          className="text-red-600 hover:text-red-800"
-        >
-          Remove
-        </button>
-      </div>
-    </div>
-  );
-})}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          {materials.map(material => (
-            <option key={material.id} value={material.id}>
-              {material.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex items-center">
-        <input
-          type="number"
-          value={oil.weight}
-          onChange={(e) => updateOil(index, 'weight', e.target.value)}
-          placeholder="Weight"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-        <select
-          value={oil.unit}
-          onChange={(e) => updateOil(index, 'unit', e.target.value)}
-          className="ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          {availableUnits.map(unit => (
-            <option key={unit} value={unit}>{unit}</option>
-          ))}
-        </select>
-      </div>
-      <div className="flex items-center">
-        <button
-          type="button"
-          onClick={() => removeOil(index)}
-          className="text-red-600 hover:text-red-800"
-        >
-          Remove
-        </button>
-      </div>
-    </div>
-  );
-})}
-                  >
-                    Remove
-                  </button>
+              const material = materials.find(m => m.id === oil.materialId);
+              const availableUnits = getCommonUnits(material?.type || 'oil');
+              
+              return (
+                <div key={index} className="grid grid-cols-3 gap-4 mb-4 items-center">
+                  <div>
+                    <select
+                      value={oil.materialId}
+                      onChange={(e) => {
+                        const selectedMaterial = materials.find(m => m.id === parseInt(e.target.value));
+                        const newUnits = getCommonUnits(selectedMaterial?.type || 'oil');
+                        updateOil(index, 'materialId', parseInt(e.target.value));
+                        updateOil(index, 'unit', newUnits[0] || 'g');
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      {materials.map(material => (
+                        <option key={material.id} value={material.id}>
+                          {material.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={oil.weight}
+                      onChange={(e) => updateOil(index, 'weight', e.target.value)}
+                      placeholder="Weight"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <select
+                      value={oil.unit}
+                      onChange={(e) => updateOil(index, 'unit', e.target.value)}
+                      className="ml-2 mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      {availableUnits.map(unit => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => removeOil(index)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <button
               type="button"
               onClick={addOil}
-              className="mt-2 text-blue-600 hover:text-blue-800"
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             >
               Add Oil
             </button>
@@ -298,7 +257,6 @@ function Recipes() {
                 value={editingRecipe.waterRatio}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, waterRatio: parseFloat(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
             <div>
@@ -308,7 +266,6 @@ function Recipes() {
                 value={editingRecipe.superFat}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, superFat: parseFloat(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
           </div>
@@ -318,10 +275,10 @@ function Recipes() {
               value={editingRecipe.instructions}
               onChange={(e) => setEditingRecipe({ ...editingRecipe, instructions: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              rows={4}
+              rows={3}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Yield (bars)</label>
               <input
@@ -329,7 +286,6 @@ function Recipes() {
                 value={editingRecipe.yield}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, yield: parseInt(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
             <div>
@@ -337,31 +293,17 @@ function Recipes() {
               <input
                 type="number"
                 value={editingRecipe.totalWeight}
-                onChange={(e) => setEditingRecipe({ ...editingRecipe, totalWeight: parseFloat(e.target.value) })}
+                onChange={(e) => setEditingRecipe({ ...editingRecipe, totalWeight: parseInt(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Labor Time (minutes)</label>
+              <label className="block text-sm font-medium text-gray-700">Labor Time (min)</label>
               <input
                 type="number"
                 value={editingRecipe.laborTime}
                 onChange={(e) => setEditingRecipe({ ...editingRecipe, laborTime: parseInt(e.target.value) })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Labor Cost ($/hour)</label>
-              <input
-                type="number"
-                value={editingRecipe.laborCost}
-                onChange={(e) => setEditingRecipe({ ...editingRecipe, laborCost: parseFloat(e.target.value) })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
               />
             </div>
           </div>
@@ -374,19 +316,19 @@ function Recipes() {
               rows={2}
             />
           </div>
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-between">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              Save Recipe
+            </button>
             <button
               type="button"
               onClick={() => setEditingRecipe(null)}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Save Recipe
             </button>
           </div>
         </form>
