@@ -1,16 +1,50 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { units } from '../utils/dataModels';
+import { importAllData } from '../utils/csvImport';
 
 function Settings() {
   const { state, dispatch } = useApp();
   const { settings } = state;
+  const [importStatus, setImportStatus] = useState('');
+  const materialsFileRef = useRef(null);
+  const productsFileRef = useRef(null);
+  const supplyOrdersFileRef = useRef(null);
 
   const updateSettings = (key, value) => {
     dispatch({
       type: 'UPDATE_SETTINGS',
       payload: { [key]: value }
     });
+  };
+
+  const handleImportData = async () => {
+    try {
+      const materialsFile = materialsFileRef.current.files[0];
+      const productsFile = productsFileRef.current.files[0];
+      const supplyOrdersFile = supplyOrdersFileRef.current.files[0];
+
+      if (!materialsFile || !productsFile || !supplyOrdersFile) {
+        setImportStatus('Please select all three files');
+        return;
+      }
+
+      const importedData = await importAllData(
+        materialsFile, 
+        productsFile, 
+        supplyOrdersFile
+      );
+
+      dispatch({
+        type: 'IMPORT_DATA',
+        payload: importedData
+      });
+
+      setImportStatus('Data imported successfully!');
+    } catch (error) {
+      console.error('Import error:', error);
+      setImportStatus('Failed to import data');
+    }
   };
 
   return (
@@ -119,6 +153,50 @@ function Settings() {
               To integrate with Shopify, you'll need to create a custom app in your Shopify admin and generate an access token.
             </p>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8 border-t pt-6">
+        <h3 className="text-lg font-semibold mb-4">Import Data</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Materials CSV</label>
+            <input 
+              type="file" 
+              ref={materialsFileRef} 
+              accept=".csv"
+              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-blue-100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Products CSV</label>
+            <input 
+              type="file" 
+              ref={productsFileRef} 
+              accept=".csv"
+              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-blue-100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Supply Orders CSV</label>
+            <input 
+              type="file" 
+              ref={supplyOrdersFileRef} 
+              accept=".csv"
+              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-blue-100"
+            />
+          </div>
+          <button 
+            onClick={handleImportData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Import Data
+          </button>
+          {importStatus && (
+            <p className={`mt-2 text-sm ${importStatus.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+              {importStatus}
+            </p>
+          )}
         </div>
       </div>
     </div>
